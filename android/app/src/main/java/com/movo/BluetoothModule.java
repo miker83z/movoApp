@@ -29,7 +29,8 @@ import com.highmobility.value.Bytes;
 
 public class BluetoothModule extends ReactContextBaseJavaModule {
 
-    private static final String TAG = "MOVO";
+    private static final String TAG = "MOVO-BLUE";
+    private static final boolean LOG = false;
     private ReactApplicationContext reactContext;
 
     public BluetoothModule(ReactApplicationContext reactContext) {
@@ -40,6 +41,10 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
     @Override
     public String getName() {
         return "BluetoothModule";
+    }
+
+    private void ifLog(String toLog) {
+        if (LOG) Log.d(TAG, toLog);
     }
 
     @ReactMethod
@@ -56,7 +61,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
         HMKit.getInstance().downloadAccessCertificate(accessToken, new HMKit.DownloadCallback() {
             @Override
             public void onDownloaded(DeviceSerial serial) {
-                Log.d(TAG, "Certificate downloaded for vehicle: " + serial);
+                ifLog("Certificate downloaded for vehicle: " + serial);
                 // Send command to the car through Telematics, make sure that the emulator is
                 // opened for this to work, otherwise "Vehicle asleep" will be returned
                 //workWithTelematics(serial);
@@ -67,7 +72,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
             @Override
             public void onDownloadFailed(DownloadAccessCertificateError error) {
-                Log.e(TAG, "Could not download a certificate with token: " + error.getMessage());
+                ifLog("Could not download a certificate with token: " + error.getMessage());
             }
         });
     }
@@ -87,7 +92,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
         broadcaster.setListener(new BroadcasterListener() {
             @Override
             public void onStateChanged(Broadcaster.State state) {
-                Log.d(TAG, "Broadcasting state changed: " + state);
+                ifLog("Broadcasting state changed: " + state);
             }
 
             @Override
@@ -112,7 +117,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
                             link.sendCommand(command, new Link.CommandCallback() {
                                 @Override
                                 public void onCommandSent() {
-                                    Log.d(TAG, "Command successfully sent through " +
+                                    ifLog("Command successfully sent through " +
                                             "Bluetooth");
                                 }
 
@@ -149,7 +154,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
                                     Link.CommandCallback() {
                                         @Override
                                         public void onCommandSent() {
-                                            Log.d(TAG, "VS Command successfully " +
+                                            ifLog("VS Command successfully " +
                                                     "sent through Bluetooth");
                                         }
 
@@ -162,7 +167,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
                         } else if (command instanceof VehicleStatus) {
                             VehicleStatus status = (VehicleStatus) command;
-                            Log.d("hm", "BLE Vehicle Status received\nvin:" + status.getVin());
+                            ifLog("BLE Vehicle Status received\nvin:" + status.getVin());
 
                         }
                     }
@@ -175,7 +180,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
             @Override
             public void onLinkLost(ConnectedLink connectedLink) {
                 // Bluetooth disconnected
-                Log.d(TAG, "Bluetooth disconnected");
+                ifLog("Bluetooth disconnected");
 
                 WritableMap params = Arguments.createMap();
                 params.putString("bluetooth", "OFF");
@@ -186,12 +191,12 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
         broadcaster.startBroadcasting(new Broadcaster.StartCallback() {
             @Override
             public void onBroadcastingStarted() {
-                Log.d(TAG, "Bluetooth broadcasting started");
+                ifLog("Bluetooth broadcasting started");
             }
 
             @Override
             public void onBroadcastingFailed(BroadcastError broadcastError) {
-                Log.d(TAG, "Bluetooth broadcasting started: " + broadcastError);
+                ifLog("Bluetooth broadcasting started: " + broadcastError);
             }
         });
     }
