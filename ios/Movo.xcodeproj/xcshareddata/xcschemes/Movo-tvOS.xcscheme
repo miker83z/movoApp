@@ -29,9 +29,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-               BuildableName = "MovoApp-tvOS.app"
-               BlueprintName = "MovoApp-tvOS"
-               ReferencedContainer = "container:MovoApp.xcodeproj">
+               BuildableName = "Movo-tvOS.app"
+               BlueprintName = "Movo-tvOS"
+               ReferencedContainer = "container:Movo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -43,9 +43,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "MovoApp-tvOSTests.xctest"
-               BlueprintName = "MovoApp-tvOSTests"
-               ReferencedContainer = "container:MovoApp.xcodeproj">
+               BuildableName = "Movo-tvOSTests.xctest"
+               BlueprintName = "Movo-tvOSTests"
+               ReferencedContainer = "container:Movo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -61,9 +61,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "MovoApp-tvOSTests.xctest"
-               BlueprintName = "MovoApp-tvOSTests"
-               ReferencedContainer = "container:MovoApp.xcodeproj">
+               BuildableName = "Movo-tvOSTests.xctest"
+               BlueprintName = "Movo-tvOSTests"
+               ReferencedContainer = "container:Movo.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -71,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "MovoApp-tvOS.app"
-            BlueprintName = "MovoApp-tvOS"
-            ReferencedContainer = "container:MovoApp.xcodeproj">
+            BuildableName = "Movo-tvOS.app"
+            BlueprintName = "Movo-tvOS"
+            ReferencedContainer = "container:Movo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -94,9 +94,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "MovoApp-tvOS.app"
-            BlueprintName = "MovoApp-tvOS"
-            ReferencedContainer = "container:MovoApp.xcodeproj">
+            BuildableName = "Movo-tvOS.app"
+            BlueprintName = "Movo-tvOS"
+            ReferencedContainer = "container:Movo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -113,9 +113,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "MovoApp-tvOS.app"
-            BlueprintName = "MovoApp-tvOS"
-            ReferencedContainer = "container:MovoApp.xcodeproj">
+            BuildableName = "Movo-tvOS.app"
+            BlueprintName = "Movo-tvOS"
+            ReferencedContainer = "container:Movo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

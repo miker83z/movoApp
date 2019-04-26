@@ -29,7 +29,7 @@ allprojects {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url "$rootDir/../node_modules/react-native/android"
         }
-	    maven { url "http://jfrog.high-mobility.com/artifactory/gradle-release-local/" }
+        maven { url "http://jfrog.high-mobility.com/artifactory/gradle-release-local/" }
 
     }
 }

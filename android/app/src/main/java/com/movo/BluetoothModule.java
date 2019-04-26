@@ -1,4 +1,4 @@
-package com.movoapp;
+package com.movo;
 
 import android.util.Log;
 
