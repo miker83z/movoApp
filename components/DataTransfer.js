@@ -1,15 +1,18 @@
 import React from 'react';
 import { View, Text, TextInput, DeviceEventEmitter } from 'react-native';
-import nodejs from 'nodejs-mobile-react-native';
 
-import BluetoothModule from '../native-modules/BluetoothModule';
+import MAMChannel from '../libs/MAMChannel';
+import BluetoothModule from '../libs/native-modules/BluetoothModule';
 
 const Web3 = require('web3');
 const PaymentChannelContract = require('../build/contracts/PaymentChannel');
 const PaymentChannelAddr = '0x60EC670E03cCF8408225852215eeDA47fdf7D1A7';
 const privateKey =
-  'e04507acb821f2ed8c9d8f54225d3943dead9193cd861435ad6447c41a4ac8f2';
+  '0xe04507acb821f2ed8c9d8f54225d3943dead9193cd861435ad6447c41a4ac8f2';
 const web3Provider = 'ws://127.0.0.1:7545';
+
+const iotaIRIProvider = 'https://nodes.devnet.iota.org';
+let coordinatesMamChannelSecretKey = 'SEKRETKEY9';
 
 export default class DataTransfer extends React.Component {
   state = {
@@ -23,19 +26,7 @@ export default class DataTransfer extends React.Component {
   };
 
   componentDidMount() {
-    nodejs.start('main.js');
-    this.listenerRef = msg => {
-      this.setState({ mamRoot: msg });
-    };
-    nodejs.channel.addListener(
-      'message',
-      msg => {
-        alert('Node: ' + msg);
-        this.listenerRef(msg);
-      },
-      this
-    );
-    nodejs.channel.send({ type: 'openMAM' });
+    //this.initMAM();
 
     this.initWeb3AndContracts();
 
@@ -48,17 +39,10 @@ export default class DataTransfer extends React.Component {
     );
   }
 
-  componentWillUnmount() {
-    if (this.listenerRef) {
-      nodejs.channel.removeListener('message', this.listenerRef);
-    }
-    a;
-  }
-
   async initWeb3AndContracts() {
     this.web3 = new Web3(web3Provider);
     this.ethAccount = this.web3.eth.accounts.privateKeyToAccount(
-      '0x' + privateKey
+      privateKey
     ).address;
 
     this.setState({ web3: this.ethAccount });
@@ -80,12 +64,17 @@ export default class DataTransfer extends React.Component {
         }
       })
       .on('data', event => {
-        alert(event.returnValues);
-        //initCommunication(event.returnValues);
+        initCommunication(event.returnValues);
       })
       .on('error', error => alert(error));
+  }
 
-    alert('Waiting for Payment Channel to open');
+  initCommunication(returnValues) {
+    otherAccount = returnValues.senderAddr;
+    blockNumber = returnValues.blockNumber;
+
+    openMAMChannel();
+    listenMAMChannel();
   }
 
   setBluetooth(e) {
@@ -93,7 +82,6 @@ export default class DataTransfer extends React.Component {
   }
 
   handleCoordinates(e) {
-    nodejs.channel.send({ type: 'sendCoor', payload: e });
     this.setState({ coordinates: { lat: e.lat, lon: e.lon } });
   }
 

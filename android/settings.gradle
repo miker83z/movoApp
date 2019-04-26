@@ -1,7 +1,5 @@
-rootProject.name = 'Movo'
+rootProject.name = 'MovoApp'
 include ':react-native-randombytes'
 project(':react-native-randombytes').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-randombytes/android')
-include ':nodejs-mobile-react-native'
-project(':nodejs-mobile-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/nodejs-mobile-react-native/android')
 
 include ':app'

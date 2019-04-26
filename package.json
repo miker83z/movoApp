@@ -1,20 +1,22 @@
 {
-  "name": "Movo",
+  "name": "MovoApp",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest",
-    "solc": "web3j truffle generate build/contracts/Movo.json -o android/app/src/main/java/ -p com.movo.contracts && web3j truffle generate build/contracts/PaymentChannel.json -o android/app/src/main/java/ -p com.movo.contracts"
+    "postinstall": "rn-nodeify --install --hack",
+    "test": "jest"
   },
   "dependencies": {
+    "@iota/converter": "^1.0.0-beta.12",
+    "@iota/mam": "^0.7.2",
     "@tradle/react-native-http": "^2.0.1",
+    "asyncstorage-down": "^4.2.0",
     "browserify-zlib": "^0.1.4",
     "dns.js": "^1.0.1",
     "events": "^1.1.1",
     "https-browserify": "0.0.1",
     "node-libs-browser": "^2.2.0",
-    "nodejs-mobile-react-native": "^0.4.0",
     "process": "^0.11.10",
     "punycode": "^1.4.1",
     "react": "16.8.3",
@@ -26,6 +28,7 @@
     "react-native-tcp": "^3.3.0",
     "react-native-udp": "^2.6.0",
     "readable-stream": "^1.0.33",
+    "seedrandom": "^3.0.1",
     "stream-browserify": "^1.0.0",
     "string_decoder": "^0.10.31",
     "timers-browserify": "^1.4.2",
