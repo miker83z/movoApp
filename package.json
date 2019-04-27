@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest",
-    "solc": "web3j truffle generate build/contracts/Movo.json -o android/app/src/main/java/ -p com.movo.contracts && web3j truffle generate build/contracts/PaymentChannel.json -o android/app/src/main/java/ -p com.movo.contracts"
+    "test": "jest"
   },
   "dependencies": {
     "@tradle/react-native-http": "^2.0.1",
@@ -30,8 +29,7 @@
     "string_decoder": "^0.10.31",
     "timers-browserify": "^1.4.2",
     "url": "^0.10.3",
-    "util": "^0.10.4",
-    "web3": "^1.0.0-beta.52"
+    "util": "^0.10.4"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",

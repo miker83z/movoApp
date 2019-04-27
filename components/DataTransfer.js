@@ -1,15 +1,8 @@
 import React from 'react';
 import { View, Text, TextInput, DeviceEventEmitter } from 'react-native';
-import nodejs from 'nodejs-mobile-react-native';
+import nodeServer from 'nodejs-mobile-react-native';
 
 import BluetoothModule from '../native-modules/BluetoothModule';
-
-const Web3 = require('web3');
-const PaymentChannelContract = require('../build/contracts/PaymentChannel');
-const PaymentChannelAddr = '0x60EC670E03cCF8408225852215eeDA47fdf7D1A7';
-const privateKey =
-  'e04507acb821f2ed8c9d8f54225d3943dead9193cd861435ad6447c41a4ac8f2';
-const web3Provider = 'ws://127.0.0.1:7545';
 
 export default class DataTransfer extends React.Component {
   state = {
@@ -23,24 +16,44 @@ export default class DataTransfer extends React.Component {
   };
 
   componentDidMount() {
-    nodejs.start('main.js');
-    this.listenerRef = msg => {
-      this.setState({ mamRoot: msg });
+    // Start node server
+    nodeServer.start('main.js');
+    // Start listener
+    this.serverListener = msg => {
+      try {
+        switch (msg.type) {
+          case 'mamRoot':
+            this.setState({ mamRoot: msg.payload });
+            break;
+          case 'web3':
+            this.setState({ web3: msg.payload });
+            break;
+          case 'newPayment':
+            alert(msg.payload);
+            break;
+          case 'error':
+            alert('Error :' + msg.payload);
+            break;
+          default:
+            alert('Unknown request: ' + msg.payload);
+            break;
+        }
+      } catch (error) {
+        alert('Error: ' + error);
+      }
     };
-    nodejs.channel.addListener(
+    nodeServer.channel.addListener(
       'message',
-      msg => {
-        alert('Node: ' + msg);
-        this.listenerRef(msg);
-      },
+      msg => this.serverListener(msg),
       this
     );
-    nodejs.channel.send({ type: 'openMAM' });
-
-    this.initWeb3AndContracts();
-
+    // Start mam operations
+    nodeServer.channel.send({ type: 'openMAM' });
+    // Start listening to payment contract
+    nodeServer.channel.send({ type: 'initWeb3' });
+    // Start bluetooth broadcasting
     BluetoothModule.initHM();
-
+    // Start bluetooth listener
     DeviceEventEmitter.addListener('bluetooth', this.setBluetooth.bind(this));
     DeviceEventEmitter.addListener(
       'coordinates',
@@ -49,43 +62,9 @@ export default class DataTransfer extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.listenerRef) {
-      nodejs.channel.removeListener('message', this.listenerRef);
+    if (this.serverListener) {
+      nodeServer.channel.removeListener('message', this.serverListener);
     }
-    a;
-  }
-
-  async initWeb3AndContracts() {
-    this.web3 = new Web3(web3Provider);
-    this.ethAccount = this.web3.eth.accounts.privateKeyToAccount(
-      '0x' + privateKey
-    ).address;
-
-    this.setState({ web3: this.ethAccount });
-
-    this.myAccountOptions = {
-      from: this.ethAccount,
-      gas: 6000000
-    };
-
-    this.PaymentChannel = new this.web3.eth.Contract(
-      PaymentChannelContract.abi,
-      PaymentChannelAddr
-    );
-
-    this.PaymentChannel.events
-      .ChannelCreated({
-        filter: {
-          receiverAddr: this.ethAccount
-        }
-      })
-      .on('data', event => {
-        alert(event.returnValues);
-        //initCommunication(event.returnValues);
-      })
-      .on('error', error => alert(error));
-
-    alert('Waiting for Payment Channel to open');
   }
 
   setBluetooth(e) {
@@ -93,12 +72,8 @@ export default class DataTransfer extends React.Component {
   }
 
   handleCoordinates(e) {
-    nodejs.channel.send({ type: 'sendCoor', payload: e });
+    nodeServer.channel.send({ type: 'sendCoor', payload: e });
     this.setState({ coordinates: { lat: e.lat, lon: e.lon } });
-  }
-
-  setWeb3(e) {
-    this.setState({ web3: e.web3 });
   }
 
   render() {
