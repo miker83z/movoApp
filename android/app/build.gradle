@@ -152,6 +152,8 @@ dependencies {
     implementation 'com.highmobility:hmkit-auto-api:2.10.0'
     implementation 'com.highmobility:hmkit-crypto:1.4.3'
     implementation 'com.highmobility:hmkit-utils:1.4.3'
+    //Affectiva modules
+    implementation 'com.affectiva.android:affdexsdk:3.2'
 }
 
 // Run this once to be able to run the application with BUCK
