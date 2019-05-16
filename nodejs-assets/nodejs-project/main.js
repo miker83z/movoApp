@@ -10,7 +10,7 @@ let coordinatesMamChannelSecretKey = 'SEKRETKEY9';
 const costPerMessage = 200;
 
 const PaymentChannelContract = require('./build/contracts/PaymentChannel');
-const PaymentChannelAddr = '0x0cdbF2c18f5d82311fDC3206aAbce289043A6eBd';
+const PaymentChannelAddr = '0xd25dc01e2EcF3c0f0d574A56eFF29FC2Df1A03F5';
 const web3Provider = 'ws://127.0.0.1:7545';
 const accountNr = 1;
 let web3;
