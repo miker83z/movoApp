@@ -51,20 +51,26 @@ export default class DataTransfer extends React.Component {
     nodeServer.channel.send({ type: 'openMAM' });
     // Start listening to payment contract
     nodeServer.channel.send({ type: 'initWeb3' });
+
     // Start bluetooth broadcasting
     BluetoothModule.initHM();
-    // Start bluetooth listener
-    DeviceEventEmitter.addListener('bluetooth', this.setBluetooth.bind(this));
-    DeviceEventEmitter.addListener(
-      'coordinates',
-      this.handleCoordinates.bind(this)
-    );
+
+    // Start events listener
+    this.startEventsListener();
   }
 
   componentWillUnmount() {
     if (this.serverListener) {
       nodeServer.channel.removeListener('message', this.serverListener);
     }
+  }
+
+  startEventsListener() {
+    DeviceEventEmitter.addListener('bluetooth', this.setBluetooth.bind(this));
+    DeviceEventEmitter.addListener(
+      'coordinates',
+      this.handleCoordinates.bind(this)
+    );
   }
 
   setBluetooth(e) {

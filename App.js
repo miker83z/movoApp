@@ -8,23 +8,23 @@
 
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import ViewPager from '@react-native-community/viewpager';
 
 import DataTransfer from './components/DataTransfer';
-
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu'
-});
+import Affectiva from './components/Affectiva';
 
 type Props = {};
 export default class App extends Component<Props> {
   render() {
     return (
-      <View style={styles.container}>
-        <DataTransfer />
-      </View>
+      <ViewPager style={styles.viewPager} initialPage={0}>
+        <View style={styles.container} key="1">
+          <DataTransfer />
+        </View>
+        <View key="2">
+          <Affectiva />
+        </View>
+      </ViewPager>
     );
   }
 }
@@ -36,14 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF'
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5
+  viewPager: {
+    flex: 1
   }
 });

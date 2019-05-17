@@ -21,7 +21,9 @@ public class CustomPackage implements ReactPackage {
             ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
+        modules.add(new EventEmitterModule(reactContext));
         modules.add(new BluetoothModule(reactContext));
+        modules.add(new AffectivaModule(reactContext));
 
         return modules;
     }
