@@ -1,6 +1,5 @@
 package com.movoapp;
 
-import android.graphics.PointF;
 import android.os.Bundle;
 
 import com.affectiva.android.affdex.sdk.Frame;
@@ -8,6 +7,7 @@ import com.affectiva.android.affdex.sdk.detector.CameraDetector;
 import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,14 +16,16 @@ import android.util.Log;
 import android.view.SurfaceView;
 
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AffectivaActivity extends AppCompatActivity
         implements Detector.FaceListener, Detector.ImageListener {
 
     private static final String TAG = "MOVO-AFFEX";
     private static final boolean LOG = true;
-    private CameraDetector detector;
-    private SurfaceView cameraView;
+    private static final int acquireRate = 1000; //In milliseconds
+    private long actualLimit;
 
     private void ifLog(String toLog) {
         if (LOG) Log.d(TAG, toLog);
@@ -33,16 +35,13 @@ public class AffectivaActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_affectiva);
+        actualLimit = 0;
 
         initializeCameraDetector();
     }
 
     void initializeCameraDetector() {
-        /* Put the SDK in camera mode by using this constructor. The SDK will be in control of
-         * the camera. If a SurfaceView is passed in as the last argument to the constructor,
-         * that view will be painted with what the camera sees.
-         */
-        detector = new CameraDetector(
+        CameraDetector detector = new CameraDetector(
                 this,
                 CameraDetector.CameraType.CAMERA_FRONT,
                 (SurfaceView) findViewById(R.id.surface_view_camera),
@@ -54,7 +53,6 @@ public class AffectivaActivity extends AppCompatActivity
 
         detector.setDetectAllExpressions(true);
         detector.setDetectAllEmotions(true);
-        detector.setDetectAllEmojis(true);
         detector.setDetectAllAppearances(true);
 
         detector.setMaxProcessRate(10);
@@ -89,51 +87,82 @@ public class AffectivaActivity extends AppCompatActivity
         if (faces.size() == 0)
             return; //no face found
 
+        long temp = new Date().getTime();
+        if ( temp < actualLimit + acquireRate)
+            return; //too soon
+        else
+            actualLimit = temp;
+
+        WritableArray facesArray = Arguments.createArray();
+
         //For each face found
         for (int i = 0 ; i < faces.size() ; i++) {
             Face face = faces.get(i);
 
             int faceId = face.getId();
 
-            WritableMap params = Arguments.createMap();
-            params.putString("id", String.valueOf(faceId));
-            EventEmitterModule.emitEvent("face", params);
-            ifLog(Integer.toString(faceId));
+            WritableMap faceObj = Arguments.createMap();
+            faceObj.putString("id", String.valueOf(faceId));
+            faceObj.putDouble("timestamp", timestamp);
 
+            // Detect identity
             //Appearance
             Face.GENDER genderValue = face.appearance.getGender();
-            ifLog(genderValue.toString());
             Face.GLASSES glassesValue = face.appearance.getGlasses();
             Face.AGE ageValue = face.appearance.getAge();
             Face.ETHNICITY ethnicityValue = face.appearance.getEthnicity();
-
-
-            //Some Emoji
-            float smiley = face.emojis.getSmiley();
-            float laughing = face.emojis.getLaughing();
-            float wink = face.emojis.getWink();
-
-
-            //Some Emotions
-            float joy = face.emotions.getJoy();
-            float anger = face.emotions.getAnger();
-            float disgust = face.emotions.getDisgust();
-
-            //Some Expressions
-            float smile = face.expressions.getSmile();
-            float brow_furrow = face.expressions.getBrowFurrow();
-            float brow_raise = face.expressions.getBrowRaise();
-
             //Measurements
             float interocular_distance = face.measurements.getInterocularDistance();
             float yaw = face.measurements.orientation.getYaw();
             float roll = face.measurements.orientation.getRoll();
             float pitch = face.measurements.orientation.getPitch();
 
-            //Face feature points coordinates
-            PointF[] points = face.getFacePoints();
+            WritableMap identity = Arguments.createMap();
+            identity.putString("gender", genderValue.toString());
+            identity.putString("glasses", glassesValue.toString());
+            identity.putString("age", ageValue.toString());
+            identity.putString("ethnicity", ethnicityValue.toString());
+            identity.putDouble("interocular", interocular_distance);
+            identity.putDouble("yaw", yaw);
+            identity.putDouble("roll", roll);
+            identity.putDouble("pitch", pitch);
+            faceObj.putMap("identity", identity);
 
+            //Some Emotions
+            float joy = face.emotions.getJoy();
+            float anger = face.emotions.getAnger();
+            float surprise = face.emotions.getSurprise();
+            float fear = face.emotions.getFear();
+
+            //Some Expressions
+            float eyeClosure = face.expressions.getEyeClosure();
+            float attention = face.expressions.getAttention();
+
+            WritableMap expressions = Arguments.createMap();
+            expressions.putDouble("joy",joy);
+            expressions.putDouble("anger",anger);
+            expressions.putDouble("surprise",surprise);
+            expressions.putDouble("fear",fear);
+            expressions.putDouble("eyeClosure",eyeClosure);
+            expressions.putDouble("attention",attention);
+            faceObj.putMap("expressions", expressions);
+
+            facesArray.pushMap(faceObj);
         }
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss-z");
+        String format = simpleDateFormat.format(new Date());
+
+        ifLog(facesArray.toString());
+        WritableMap obj = Arguments.createMap();
+        obj.putArray("faces", facesArray);
+        obj.putString("timestamp", format);
+        /*WritableMap finObj = Arguments.createMap();
+        finObj.putMap("lol", obj);
+        EventEmitterModule.emitEvent("faces", finObj);
+        */
+        //ifLog(obj.toString());
+        EventEmitterModule.emitEvent("faces", obj);
     }
 
 }

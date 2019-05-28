@@ -4,9 +4,10 @@ const MAMChannel = require('./iota/MAMChannel');
 
 const iotaIRIProvider = 'https://nodes.devnet.iota.org';
 let indexMamChannel;
-const indexMamChannelSeedKey = 'index999';
+const indexMamChannelSeedKey = 'index9999999';
 let coordinatesMamChannel;
-let coordinatesMamChannelSecretKey = 'SEKRETKEY9';
+let facesMamChannel;
+let mamSecretKey = 'SEKRETKEY9';
 const costPerMessage = 200;
 
 const PaymentChannelContract = require('./build/contracts/PaymentChannel');
@@ -32,13 +33,29 @@ const openMAMChannels = () => {
     'restricted',
     iotaIRIProvider,
     null,
-    coordinatesMamChannelSecretKey
+    mamSecretKey
   );
   coordinatesMamChannel.openChannel();
 
+  facesMamChannel = new MAMChannel(
+    'restricted',
+    iotaIRIProvider,
+    null,
+    mamSecretKey
+  );
+  facesMamChannel.openChannel();
+
   indexMamChannel.publish({
-    type: 'coordinates',
-    root: coordinatesMamChannel.getRoot(),
+    channels: [
+      {
+        type: 'coordinates',
+        root: coordinatesMamChannel.getRoot()
+      },
+      {
+        type: 'faces',
+        root: facesMamChannel.getRoot()
+      }
+    ],
     timestamp: new Date().getTime()
   });
 };
@@ -182,7 +199,7 @@ reactBridge.channel.on('message', async msg => {
         openMAMChannels();
         reactBridge.channel.send({
           type: 'mamRoot',
-          payload: coordinatesMamChannel.getRoot()
+          payload: facesMamChannel.getRoot()
         });
         break;
       case 'initWeb3':
@@ -194,6 +211,12 @@ reactBridge.channel.on('message', async msg => {
         break;
       case 'sendCoor':
         coordinatesMamChannel.publish({
+          payload: msg.payload,
+          timestamp: new Date().getTime()
+        });
+        break;
+      case 'sendFaces':
+        facesMamChannel.publish({
           payload: msg.payload,
           timestamp: new Date().getTime()
         });

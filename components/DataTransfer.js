@@ -12,7 +12,8 @@ export default class DataTransfer extends React.Component {
       lat: null,
       lon: null
     },
-    mamRoot: null
+    mamRoot: null,
+    faces: []
   };
 
   componentDidMount() {
@@ -57,6 +58,15 @@ export default class DataTransfer extends React.Component {
 
     // Start events listener
     this.startEventsListener();
+
+    // Affectiva mam messages
+    this.facesSender = setInterval(() => {
+      if (this.state.mamRoot && this.state.faces.length > 0) {
+        const faces = this.state.faces;
+        this.setState({ faces: [] });
+        nodeServer.channel.send({ type: 'sendFaces', payload: faces });
+      }
+    }, 10000);
   }
 
   componentWillUnmount() {
@@ -71,6 +81,7 @@ export default class DataTransfer extends React.Component {
       'coordinates',
       this.handleCoordinates.bind(this)
     );
+    DeviceEventEmitter.addListener('faces', this.handleFaces.bind(this));
   }
 
   setBluetooth(e) {
@@ -78,27 +89,62 @@ export default class DataTransfer extends React.Component {
   }
 
   handleCoordinates(e) {
-    nodeServer.channel.send({ type: 'sendCoor', payload: e });
+    if (this.state.mamRoot) {
+      nodeServer.channel.send({ type: 'sendCoor', payload: e });
+    }
     this.setState({ coordinates: { lat: e.lat, lon: e.lon } });
   }
 
+  handleFaces(e) {
+    const faces = this.state.faces.concat(e);
+    this.setState({ faces });
+  }
+
   render() {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Bluetooth: {this.state.bluetooth}</Text>
-        <Text>Lat: {this.state.coordinates.lat}</Text>
-        <Text>Lon: {this.state.coordinates.lon}</Text>
-        <Text> </Text>
-        <Text>Web3: {this.state.web3}</Text>
-        <Text> </Text>
-        <Text>MAM: </Text>
-        <TextInput
-          multiline={true}
-          editable={true}
-          maxLength={100}
-          value={this.state.mamRoot}
-        />
-      </View>
-    );
+    if (
+      typeof this.state.faces !== 'undefined' &&
+      this.state.faces.length > 0
+    ) {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text>Bluetooth: {this.state.bluetooth}</Text>
+          <Text>Lat: {this.state.coordinates.lat}</Text>
+          <Text>Lon: {this.state.coordinates.lon}</Text>
+          <Text> </Text>
+          <Text>Web3: {this.state.web3}</Text>
+          <Text> </Text>
+          <Text>MAM: </Text>
+          <TextInput
+            multiline={true}
+            editable={true}
+            maxLength={100}
+            value={this.state.mamRoot}
+          />
+          <Text>{JSON.stringify(this.state.faces[0].faces)}</Text>
+        </View>
+      );
+    } else {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text>Bluetooth: {this.state.bluetooth}</Text>
+          <Text>Lat: {this.state.coordinates.lat}</Text>
+          <Text>Lon: {this.state.coordinates.lon}</Text>
+          <Text> </Text>
+          <Text>Web3: {this.state.web3}</Text>
+          <Text> </Text>
+          <Text>MAM: </Text>
+          <TextInput
+            multiline={true}
+            editable={true}
+            maxLength={100}
+            value={this.state.mamRoot}
+          />
+        </View>
+      );
+    }
   }
 }
