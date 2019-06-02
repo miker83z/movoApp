@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, DeviceEventEmitter } from 'react-native';
+import { Header } from 'react-native-elements';
 import nodeServer from 'nodejs-mobile-react-native';
 
 import BluetoothModule from '../native-modules/BluetoothModule';
@@ -17,9 +18,7 @@ export default class DataTransfer extends React.Component {
   };
 
   componentDidMount() {
-    // Start node server
-    nodeServer.start('main.js');
-    // Start listener
+    // Start node server listener
     this.serverListener = msg => {
       try {
         switch (msg.type) {
@@ -29,14 +28,8 @@ export default class DataTransfer extends React.Component {
           case 'web3':
             this.setState({ web3: msg.payload });
             break;
-          case 'newPayment':
-            alert(msg.payload);
-            break;
           case 'error':
             alert('Error :' + msg.payload);
-            break;
-          default:
-            alert('Unknown request: ' + msg.payload);
             break;
         }
       } catch (error) {
@@ -50,8 +43,6 @@ export default class DataTransfer extends React.Component {
     );
     // Start mam operations
     nodeServer.channel.send({ type: 'openMAM' });
-    // Start listening to payment contract
-    nodeServer.channel.send({ type: 'initWeb3' });
 
     // Start bluetooth broadcasting
     BluetoothModule.initHM();
@@ -107,8 +98,21 @@ export default class DataTransfer extends React.Component {
     ) {
       return (
         <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          style={{
+            flex: 1,
+            alignItems: 'center'
+          }}
         >
+          <Header
+            centerComponent={{
+              text: 'Movo',
+              style: { color: '#fff', fontSize: 25 }
+            }}
+          />
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
           <Text>Bluetooth: {this.state.bluetooth}</Text>
           <Text>Lat: {this.state.coordinates.lat}</Text>
           <Text>Lon: {this.state.coordinates.lon}</Text>
@@ -128,8 +132,21 @@ export default class DataTransfer extends React.Component {
     } else {
       return (
         <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          style={{
+            flex: 1,
+            alignItems: 'center'
+          }}
         >
+          <Header
+            centerComponent={{
+              text: 'Movo',
+              style: { color: '#fff', fontSize: 25 }
+            }}
+          />
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
           <Text>Bluetooth: {this.state.bluetooth}</Text>
           <Text>Lat: {this.state.coordinates.lat}</Text>
           <Text>Lon: {this.state.coordinates.lon}</Text>

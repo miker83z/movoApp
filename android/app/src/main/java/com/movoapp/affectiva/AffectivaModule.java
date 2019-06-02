@@ -1,8 +1,7 @@
-package com.movoapp;
+package com.movoapp.affectiva;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;

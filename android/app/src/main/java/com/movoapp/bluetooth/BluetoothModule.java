@@ -1,4 +1,4 @@
-package com.movoapp;
+package com.movoapp.bluetooth;
 
 import android.util.Log;
 
@@ -25,6 +25,7 @@ import com.highmobility.hmkit.error.BroadcastError;
 import com.highmobility.hmkit.error.DownloadAccessCertificateError;
 import com.highmobility.hmkit.error.LinkError;
 import com.highmobility.value.Bytes;
+import com.movoapp.EventEmitterModule;
 
 public class BluetoothModule extends ReactContextBaseJavaModule {
 
@@ -46,6 +47,10 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void initHM() {
+        if (HMKit.getInstance() != null) { // prevent reinitialization
+            return;
+        }
+
         HMKit.getInstance().initialise(
                 "dGVzdHZ+c0Q/87hmvKQKU0LhA0S0Wbk4ASadD14tAqkIU9DGM9KmxB4URXLjlm48x9dSGf3ZDU+H2bzdA8bwpK6hzQSmjtv556OCNEvuWWctsoDNvvqjUXxs8XGpSfUBIYKpM2WoyT6HumMyxQvrxqNsW6pRcSZrkNoCnwCEEOoGNuMEJ7sJrCDHHLX65rS7vWXqc6KkXpLV",
                 "QJNlA00raRnsgA/StDYJ0+BcPhyg8fjCgfyCklsm5ms=",

@@ -1,4 +1,4 @@
-package com.movoapp;
+package com.movoapp.affectiva;
 
 import android.os.Bundle;
 
@@ -9,6 +9,8 @@ import com.affectiva.android.affdex.sdk.detector.Face;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.movoapp.EventEmitterModule;
+import com.movoapp.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -157,11 +159,6 @@ public class AffectivaActivity extends AppCompatActivity
         WritableMap obj = Arguments.createMap();
         obj.putArray("faces", facesArray);
         obj.putString("timestamp", format);
-        /*WritableMap finObj = Arguments.createMap();
-        finObj.putMap("lol", obj);
-        EventEmitterModule.emitEvent("faces", finObj);
-        */
-        //ifLog(obj.toString());
         EventEmitterModule.emitEvent("faces", obj);
     }
 

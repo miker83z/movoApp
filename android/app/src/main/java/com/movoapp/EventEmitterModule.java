@@ -1,17 +1,14 @@
 package com.movoapp;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import java.util.HashMap;
-import java.util.Map;
 
-final class EventEmitterModule extends ReactContextBaseJavaModule {
+public class EventEmitterModule extends ReactContextBaseJavaModule {
 
     private static DeviceEventManagerModule.RCTDeviceEventEmitter eventEmitter = null;
 
@@ -30,7 +27,7 @@ final class EventEmitterModule extends ReactContextBaseJavaModule {
         return "EventEmitter";
     }
 
-    static void emitEvent(@NonNull String eventName, WritableMap params) {
+    public static void emitEvent(@NonNull String eventName, WritableMap params) {
         eventEmitter.emit(eventName, params);
     }
 }
