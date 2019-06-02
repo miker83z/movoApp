@@ -7,24 +7,84 @@
  */
 
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  PermissionsAndroid
+} from 'react-native';
+import ViewPager from '@react-native-community/viewpager';
 
+import nodeServer from 'nodejs-mobile-react-native';
 import DataTransfer from './components/DataTransfer';
+import Affectiva from './components/Affectiva';
+import Wifi from './components/Wifi';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu'
-});
+// Start node server
+nodeServer.start('main.js');
 
 type Props = {};
 export default class App extends Component<Props> {
+  async componentDidMount() {
+    await this.requestCameraPermission();
+    await this.requestLocationPermission();
+  }
+
+  async requestCameraPermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'Movo needs access to your camera ',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK'
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the camera');
+      } else {
+        console.log('Camera permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
+  async requestLocationPermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+        {
+          title: 'Location Permission',
+          message: 'App needs access to your Location '
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the location');
+      } else {
+        console.log('Location permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
   render() {
     return (
-      <View style={styles.container}>
-        <DataTransfer />
-      </View>
+      <ViewPager style={styles.viewPager} initialPage={0}>
+        <View style={styles.container} key="1">
+          <DataTransfer />
+        </View>
+        <View key="2">
+          <Affectiva />
+        </View>
+        <View key="3">
+          <Wifi />
+        </View>
+      </ViewPager>
     );
   }
 }
@@ -36,14 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF'
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5
+  viewPager: {
+    flex: 1
   }
 });

@@ -2,20 +2,29 @@ const reactBridge = require('rn-bridge');
 const Web3 = require('web3');
 const MAMChannel = require('./iota/MAMChannel');
 
+let server = false;
+
 const iotaIRIProvider = 'https://nodes.devnet.iota.org';
 let indexMamChannel;
-const indexMamChannelSeedKey = 'index999';
+const indexMamChannelSeedKey = 'index9999999999';
 let coordinatesMamChannel;
-let coordinatesMamChannelSecretKey = 'SEKRETKEY9';
-const costPerMessage = 200;
+let facesMamChannel;
+let mamSecretKey = 'SEKRETKEY9';
 
+const costPerMessage = 200;
 const PaymentChannelContract = require('./build/contracts/PaymentChannel');
 const PaymentChannelAddr = '0xd25dc01e2EcF3c0f0d574A56eFF29FC2Df1A03F5';
+let PaymentChannel;
 const web3Provider = 'ws://127.0.0.1:7545';
-const accountNr = 1;
+let accountNr = 0;
 let web3;
-let ethAccount;
-let myAccountOptions;
+let ethAccount = '0xf28D1cb997B07DD130E009fb2593710F0743A910';
+let serverAccount = '0x6d54fE6b7508b0151Beee05a3f0B7593a789d829';
+let myAccountOptions = {
+  from: ethAccount,
+  gas: 6000000
+};
+const deposit = 5000;
 
 const clients = {};
 
@@ -32,32 +41,45 @@ const openMAMChannels = () => {
     'restricted',
     iotaIRIProvider,
     null,
-    coordinatesMamChannelSecretKey
+    mamSecretKey
   );
   coordinatesMamChannel.openChannel();
 
+  facesMamChannel = new MAMChannel(
+    'restricted',
+    iotaIRIProvider,
+    null,
+    mamSecretKey
+  );
+  facesMamChannel.openChannel();
+
   indexMamChannel.publish({
-    type: 'coordinates',
-    root: coordinatesMamChannel.getRoot(),
+    channels: [
+      {
+        type: 'coordinates',
+        root: coordinatesMamChannel.getRoot()
+      },
+      {
+        type: 'faces',
+        root: facesMamChannel.getRoot()
+      }
+    ],
     timestamp: new Date().getTime()
   });
 };
 
-const initWeb3AndContracts = async () => {
+const initWeb3 = () => {
   web3 = new Web3(web3Provider);
-  const accounts = await web3.eth.getAccounts();
-  ethAccount = accounts[accountNr];
+  //const accounts = await web3.eth.getAccounts();
+  //ethAccount = accounts[accountNr];
 
-  myAccountOptions = {
-    from: ethAccount,
-    gas: 6000000
-  };
-
-  const PaymentChannel = new web3.eth.Contract(
+  PaymentChannel = new web3.eth.Contract(
     PaymentChannelContract.abi,
     PaymentChannelAddr
   );
+};
 
+const addPaymentChannelListener = () => {
   PaymentChannel.events
     .ChannelCreated({
       filter: {
@@ -77,84 +99,59 @@ const initWeb3AndContracts = async () => {
     .on('error', error => alert(error));
 };
 
-const newClient = (publicKey, sharedSeed) => {
-  const myChannel = new MAMChannel(
-    'private',
-    iotaIRIProvider,
-    sharedSeed + '9',
-    null
-  );
-  myChannel.openChannel();
-
-  const hisChannel = new MAMChannel(
-    'private',
-    iotaIRIProvider,
-    sharedSeed,
-    null
-  );
-  hisChannel.openChannel();
-
-  listenMAMChannel(publicKey);
-
-  clients[publicKey] = {
-    sharedSeed: sharedSeed,
-    hisChannel: hisChannel,
-    myChannel: myChannel,
-    hisBalance: 0,
-    myBalance: 0,
-    closed: false
-  };
+const setServer = () => {
+  server = true;
+  accountNr = 1;
+  ethAccount = serverAccount;
+  addPaymentChannelListener();
 };
 
-const listenMAMChannel = async publicKey => {
-  const channel = clients[publicKey];
-  let tmpRoot = channel.getRoot();
-  while (!clients[publicKey].closed) {
-    console.log('Searching for ' + tmpRoot);
-    const result = await channel.fetchFrom(tmpRoot);
-    if (typeof result.messages !== 'undefined' && result.messages.length > 0) {
-      result.messages.forEach(message => {
-        processMessage(message, publicKey);
-      });
-      tmpRoot = result.nextRoot;
+const sendPublicKey = () => {
+  reactBridge.channel.send({
+    type: 'wifiMessage',
+    payload: {
+      message: {
+        type: 'handshake'
+      },
+      publicKey: ethAccount
     }
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  }
+  });
 };
 
-const processMessage = (json, publicKey) => {
-  console.log('Fetched', json, '\n');
+const processMessage = async (json, publicKey) => {
+  if (!(publicKey in clients)) {
+    await newClient(publicKey);
+  }
+  console.log('Fetched', json);
+
   if (json.type == 'balance') {
     if (checkSignature(json, publicKey)) {
-      if (json.balance > clients[publicKey].balance) {
-        clients[publicKey].hisBalance = json.balance;
-        const tmp = Math.floor(
-          (json.balance - clients[publicKey].myBalance) / costPerMessage
-        );
-        for (let i = 0; i < tmp; i++) sendMessage(publicKey);
+      if (server) {
+        if (json.balance > clients[publicKey].hisBalance) {
+          clients[publicKey].hisBalance = clients[publicKey].myBalance =
+            json.balance;
+          sendMessage(publicKey);
+        }
+      } else {
+        if (json.balance === clients[publicKey].myBalance) {
+          console.log('Client accepting message');
+          clients[publicKey].hisBalance = json.balance;
+          close(publicKey, json.signature);
+        }
       }
-    }
-  } else if (json.type == 'close') {
-    if (checkSignature(json, publicKey)) {
-      console.log('Closed channel');
-      sendCloseMessage();
-      stop = true;
-      //close(json.signature);
     }
   }
 };
 
 const checkSignature = async (message, publicKey) => {
-  reactBridge.channel.send({ type: 'soliditySha3', payload: publicKey });
   const balanceHash = web3.utils.soliditySha3(
     {
       type: 'address',
-      value: myAccount
+      value: ethAccount
     },
     {
       type: 'uint32',
-      value: blockNumber
+      value: message.blockNumber
     },
     {
       type: 'uint192',
@@ -171,7 +168,116 @@ const checkSignature = async (message, publicKey) => {
     message.signature
   );
 
-  return accountRecovered === otherAccount;
+  return accountRecovered === publicKey;
+};
+
+const newClient = async publicKey => {
+  console.log('New client', publicKey);
+  clients[publicKey] = {
+    hisBalance: 0,
+    myBalance: 0,
+    blockNumber: 0,
+    closed: false
+  };
+
+  if (!server) {
+    console.log('Opening Payment Channel');
+    await openPaymentChannel(publicKey);
+  }
+};
+
+const openPaymentChannel = publicKey => {
+  //const receipt = await
+  PaymentChannel.methods
+    .createChannel(publicKey, deposit)
+    .send(myAccountOptions)
+    .on('transactionHash', async hash => {
+      console.log('transaction ', hash);
+      const tx = await web3.eth.getTransaction(hash);
+      clients[publicKey].blockNumber = tx.blockNumber;
+      console.log(
+        'Opened Payment Channel with deposit: ' +
+          deposit +
+          ' and block number: ' +
+          tx.blockNumber
+      );
+      requestService(publicKey);
+    })
+    .on('error', console.error);
+};
+
+const requestService = publicKey => {
+  clients[publicKey].myBalance += 200;
+  sendMessage(publicKey);
+};
+
+const sendMessage = async publicKey => {
+  console.log(
+    'Sending balance message to ' +
+      publicKey +
+      ' with balance ' +
+      clients[publicKey].myBalance
+  );
+  const senderSign = await signBalance(publicKey);
+
+  reactBridge.channel.send({
+    type: 'wifiMessage',
+    payload: {
+      message: {
+        type: 'balance',
+        message: '',
+        balance: clients[publicKey].myBalance,
+        blockNumber: clients[publicKey].blockNumber,
+        signature: senderSign
+      },
+      publicKey: ethAccount
+    }
+  });
+};
+
+const signBalance = async publicKey => {
+  const senderHash = web3.utils.soliditySha3(
+    {
+      type: 'address',
+      value: publicKey
+    },
+    {
+      type: 'uint32',
+      value: clients[publicKey].blockNumber
+    },
+    {
+      type: 'uint192',
+      value: clients[publicKey].myBalance
+    },
+    {
+      type: 'address',
+      value: PaymentChannelAddr
+    }
+  );
+  return await web3.eth.sign(senderHash, ethAccount);
+};
+
+const close = async (publicKey, receiverSign) => {
+  const senderSign = await signBalance(publicKey);
+
+  console.log('Closing channel...');
+  try {
+    /*await PaymentChannel.methods
+      .closeChannel(
+        publicKey,
+        clients[publicKey].blockNumber,
+        clients[publicKey].myBalance,
+        senderSign,
+        receiverSign
+      )
+      .send(myAccountOptions);*/
+    console.log('Channel closed');
+    reactBridge.channel.send({
+      type: 'channelClosed'
+    });
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 // Every message received from react-native.
@@ -182,11 +288,11 @@ reactBridge.channel.on('message', async msg => {
         openMAMChannels();
         reactBridge.channel.send({
           type: 'mamRoot',
-          payload: coordinatesMamChannel.getRoot()
+          payload: facesMamChannel.getRoot()
         });
         break;
       case 'initWeb3':
-        await initWeb3AndContracts();
+        await initWeb3();
         reactBridge.channel.send({
           type: 'web3',
           payload: ethAccount
@@ -198,8 +304,27 @@ reactBridge.channel.on('message', async msg => {
           timestamp: new Date().getTime()
         });
         break;
+      case 'sendFaces':
+        facesMamChannel.publish({
+          payload: msg.payload,
+          timestamp: new Date().getTime()
+        });
+        break;
+      case 'server':
+        setServer();
+        reactBridge.channel.send({
+          type: 'web3',
+          payload: ethAccount
+        });
+        break;
+      case 'keysHandshake':
+        sendPublicKey();
+        break;
+      case 'wifiMessage':
+        processMessage(msg.payload.message, msg.payload.publicKey);
+        break;
       case 'newClient':
-        newClient(msg.account, msg.sharedKey);
+        newClient(msg.account);
         break;
       default:
         reactBridge.channel.send({

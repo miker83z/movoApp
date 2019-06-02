@@ -1,4 +1,4 @@
-package com.movoapp;
+package com.movoapp.bluetooth;
 
 import android.util.Log;
 
@@ -7,7 +7,6 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.highmobility.autoapi.Capabilities;
 import com.highmobility.autoapi.Command;
 import com.highmobility.autoapi.CommandResolver;
@@ -26,16 +25,15 @@ import com.highmobility.hmkit.error.BroadcastError;
 import com.highmobility.hmkit.error.DownloadAccessCertificateError;
 import com.highmobility.hmkit.error.LinkError;
 import com.highmobility.value.Bytes;
+import com.movoapp.EventEmitterModule;
 
 public class BluetoothModule extends ReactContextBaseJavaModule {
 
     private static final String TAG = "MOVO-BLUE";
     private static final boolean LOG = false;
-    private ReactApplicationContext reactContext;
 
     public BluetoothModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        this.reactContext = reactContext;
     }
 
     @Override
@@ -49,11 +47,15 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void initHM() {
+        if (HMKit.getInstance() != null) { // prevent reinitialization
+            return;
+        }
+
         HMKit.getInstance().initialise(
                 "dGVzdHZ+c0Q/87hmvKQKU0LhA0S0Wbk4ASadD14tAqkIU9DGM9KmxB4URXLjlm48x9dSGf3ZDU+H2bzdA8bwpK6hzQSmjtv556OCNEvuWWctsoDNvvqjUXxs8XGpSfUBIYKpM2WoyT6HumMyxQvrxqNsW6pRcSZrkNoCnwCEEOoGNuMEJ7sJrCDHHLX65rS7vWXqc6KkXpLV",
                 "QJNlA00raRnsgA/StDYJ0+BcPhyg8fjCgfyCklsm5ms=",
                 "gmm0gb7ZgoMM3g4hoZsPDmrB6CBfkbqyytF/OVEpAr3iVAYWWP2a0ae2LzDS7BEDXhphbvfMN2OHiuaPPtf7NA==",
-                reactContext.getApplicationContext()
+                getReactApplicationContext().getApplicationContext()
         );
 
         String accessToken = "f009739d-3530-48cb-a60f-5ce07718128b";
@@ -75,12 +77,6 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
                 ifLog("Could not download a certificate with token: " + error.getMessage());
             }
         });
-    }
-
-    private void sendEvent(String eventName, WritableMap params) {
-        reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(eventName, params);
     }
 
     private void workWithBluetooth() {
@@ -145,7 +141,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
                             WritableMap params = Arguments.createMap();
                             params.putString("lat", String.valueOf(lat));
                             params.putString("lon", String.valueOf(lon));
-                            sendEvent("coordinates", params);
+                            EventEmitterModule.emitEvent("coordinates", params);
 
 
                         } else if (command instanceof Capabilities) {
@@ -174,7 +170,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
                 });
                 WritableMap params = Arguments.createMap();
                 params.putString("bluetooth", "ON");
-                sendEvent("bluetooth", params);
+                EventEmitterModule.emitEvent("bluetooth", params);
             }
 
             @Override
@@ -184,7 +180,7 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
                 WritableMap params = Arguments.createMap();
                 params.putString("bluetooth", "OFF");
-                sendEvent("bluetooth", params);
+                EventEmitterModule.emitEvent("bluetooth", params);
             }
         });
 
