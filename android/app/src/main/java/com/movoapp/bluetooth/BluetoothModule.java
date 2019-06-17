@@ -47,9 +47,6 @@ public class BluetoothModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void initHM() {
-        if (HMKit.getInstance() != null) { // prevent reinitialization
-            return;
-        }
 
         HMKit.getInstance().initialise(
                 "dGVzdHZ+c0Q/87hmvKQKU0LhA0S0Wbk4ASadD14tAqkIU9DGM9KmxB4URXLjlm48x9dSGf3ZDU+H2bzdA8bwpK6hzQSmjtv556OCNEvuWWctsoDNvvqjUXxs8XGpSfUBIYKpM2WoyT6HumMyxQvrxqNsW6pRcSZrkNoCnwCEEOoGNuMEJ7sJrCDHHLX65rS7vWXqc6KkXpLV",
