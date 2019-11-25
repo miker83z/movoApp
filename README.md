@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/183396595.svg)](https://zenodo.org/badge/latestdoi/183396595)
 # Movo prototype
 
 An android app prototype that allows to share vehicle data using IOTA
